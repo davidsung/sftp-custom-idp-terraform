@@ -217,8 +217,8 @@ Restricting user to delete files in outbound folder
 2. [AWS Blog - Enable password authentication for AWS Transfer Family using AWS Secrets Manager (updated)](https://aws.amazon.com/blogs/storage/enable-password-authentication-for-aws-transfer-family-using-aws-secrets-manager-updated/)
 3. [AWS Blog - Implement multi-factor authentication based managed file transfer using AWS Transfer Family and AWS Secrets Manager](https://aws.amazon.com/blogs/storage/implement-multi-factor-authentication-based-managed-file-transfer-using-aws-transfer-family-and-aws-secrets-manager/)
 4. [AWS Blog - Detect malware threats using AWS Transfer Family](https://aws.amazon.com/blogs/storage/detect-malware-threats-using-aws-transfer-family/)
-5. [AWS Samples - Transfer Family Toolkit](https://github.com/aws-samples/toolkit-for-aws-transfer-family/tree/main/solutions/custom-idp)
-6. [AWS Blog - ](https://aws.amazon.com/blogs/storage/architecting-secure-and-compliant-managed-file-transfers-with-aws-transfer-family-sftp-connectors-and-pgp-encryption/)
+5. [AWS Blog - Architecting secure and compliant managed file transfers with AWS Transfer Family SFTP connectors and PGP encryption](https://aws.amazon.com/blogs/storage/architecting-secure-and-compliant-managed-file-transfers-with-aws-transfer-family-sftp-connectors-and-pgp-encryption/)
+6. [AWS Samples - Transfer Family Toolkit](https://github.com/aws-samples/toolkit-for-aws-transfer-family/tree/main/solutions/custom-idp)
 
 ## License
 
