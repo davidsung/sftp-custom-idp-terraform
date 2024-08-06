@@ -72,68 +72,71 @@ def lambda_handler(event, context):
         resp_data['Role'] = ''
 
     # These are optional so ignore if not present
-    if 'Policy' in resp_dict:
-        resp_data['Policy'] = json.dumps({
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Sid": "AllowListingOfUserFolder",
-                    "Effect": "Allow",
-                    "Action": [
-                        "s3:*"
-                    ],
-                    "Resource": [
-                        f"{os.environ['S3_BUCKET_ARN']}",
-                        f"{os.environ['S3_BUCKET_ARN']}/*",
-                    ],
-                },
-                {
-                    "Sid": "AllowListingOfUserFolder",
-                    "Effect": "Allow",
-                    "Action": [
-                        "s3:ListBucket"
-                    ],
-                    "Resource": f"{os.environ['S3_BUCKET_ARN']}",
-                    "Condition": {
-                        "StringLike": {
-                            "s3:prefix": [
-                                f"{input_username}//*",
-                                f"{input_username}/*",
-                                f"{input_username}/",
-                                f"{input_username}",
-                            ]
-                        }
-                    }
-                },
-                {
-                    "Sid": "HomeDirObjectAccess",
-                    "Effect": "Allow",
-                    "Action": [
-                        "s3:GetObject",
-                        "s3:GetObjectVersion",
-                        "s3:GetObjectACL"
-                    ],
-                    "Resource": [
-                        f"{os.environ['S3_BUCKET_ARN']}/{input_username}/clearing/outbound/*",
-                        f"{os.environ['S3_BUCKET_ARN']}/{input_username}/*"
-                    ]
-                },
-                {
-                    "Sid": "HomeDirObjectAccess",
-                    "Effect": "Allow",
-                    "Action": [
-                        "s3:PutObject",
-                        "s3:GetObject",
-                        "s3:DeleteObjectVersion",
-                        "s3:DeleteObject",
-                        "s3:GetObjectVersion",
-                        "s3:GetObjectACL",
-                        "s3:PutObjectACL"
-                    ],
-                    "Resource": f"{os.environ['S3_BUCKET_ARN']}/{input_username}/clearing/inbound/*"
-                }
-            ]
-        })
+    # if 'Policy' in resp_dict:
+    #     resp_data['Policy'] = resp_dict['Policy']
+    # else:
+    resp_data['Policy'] = ""
+        # resp_data['Policy'] = json.dumps({
+        #     "Version": "2012-10-17",
+        #     "Statement": [
+        #         {
+        #             "Sid": "AllowListingOfUserFolder",
+        #             "Effect": "Allow",
+        #             "Action": [
+        #                 "s3:*"
+        #             ],
+        #             "Resource": [
+        #                 f"{os.environ['S3_BUCKET_ARN']}",
+        #                 f"{os.environ['S3_BUCKET_ARN']}/*",
+        #             ],
+        #         },
+        #         {
+        #             "Sid": "AllowListingOfUserFolder",
+        #             "Effect": "Allow",
+        #             "Action": [
+        #                 "s3:ListBucket"
+        #             ],
+        #             "Resource": f"{os.environ['S3_BUCKET_ARN']}",
+        #             "Condition": {
+        #                 "StringLike": {
+        #                     "s3:prefix": [
+        #                         f"{input_username}//*",
+        #                         f"{input_username}/*",
+        #                         f"{input_username}/",
+        #                         f"{input_username}",
+        #                     ]
+        #                 }
+        #             }
+        #         },
+        #         {
+        #             "Sid": "HomeDirObjectAccess",
+        #             "Effect": "Allow",
+        #             "Action": [
+        #                 "s3:GetObject",
+        #                 "s3:GetObjectVersion",
+        #                 "s3:GetObjectACL"
+        #             ],
+        #             "Resource": [
+        #                 f"{os.environ['S3_BUCKET_ARN']}/{input_username}/clearing/outbound/*",
+        #                 f"{os.environ['S3_BUCKET_ARN']}/{input_username}/*"
+        #             ]
+        #         },
+        #         {
+        #             "Sid": "HomeDirObjectAccess",
+        #             "Effect": "Allow",
+        #             "Action": [
+        #                 "s3:PutObject",
+        #                 "s3:GetObject",
+        #                 "s3:DeleteObjectVersion",
+        #                 "s3:DeleteObject",
+        #                 "s3:GetObjectVersion",
+        #                 "s3:GetObjectACL",
+        #                 "s3:PutObjectACL"
+        #             ],
+        #             "Resource": f"{os.environ['S3_BUCKET_ARN']}/{input_username}/clearing/inbound/*"
+        #         }
+        #     ]
+        # })
         # resp_data['Policy'] = json.dumps({
         #     "Version": "2012-10-17",
         #     "Statement": [
