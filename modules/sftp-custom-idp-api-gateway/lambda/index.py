@@ -11,6 +11,10 @@ def lambda_handler(event, context):
         print("S3_BUCKET_ARN environment variable missing  - Unexpected")
         return resp_data
 
+    if 'KMS_KEY_ARN' not in os.environ:
+        print("KMS_KEY_ARN environment variable missing  - Unexpected")
+        return resp_data
+
     if 'username' not in event or 'serverId' not in event:
         print("Incoming username or serverId missing  - Unexpected")
         return resp_data
@@ -71,120 +75,72 @@ def lambda_handler(event, context):
         print("No field match for role - Set empty string in response")
         resp_data['Role'] = ''
 
-    # These are optional so ignore if not present
-    # if 'Policy' in resp_dict:
-    #     resp_data['Policy'] = resp_dict['Policy']
-    # else:
-    resp_data['Policy'] = ""
-        # resp_data['Policy'] = json.dumps({
-        #     "Version": "2012-10-17",
-        #     "Statement": [
-        #         {
-        #             "Sid": "AllowListingOfUserFolder",
-        #             "Effect": "Allow",
-        #             "Action": [
-        #                 "s3:*"
-        #             ],
-        #             "Resource": [
-        #                 f"{os.environ['S3_BUCKET_ARN']}",
-        #                 f"{os.environ['S3_BUCKET_ARN']}/*",
-        #             ],
-        #         },
-        #         {
-        #             "Sid": "AllowListingOfUserFolder",
-        #             "Effect": "Allow",
-        #             "Action": [
-        #                 "s3:ListBucket"
-        #             ],
-        #             "Resource": f"{os.environ['S3_BUCKET_ARN']}",
-        #             "Condition": {
-        #                 "StringLike": {
-        #                     "s3:prefix": [
-        #                         f"{input_username}//*",
-        #                         f"{input_username}/*",
-        #                         f"{input_username}/",
-        #                         f"{input_username}",
-        #                     ]
-        #                 }
-        #             }
-        #         },
-        #         {
-        #             "Sid": "HomeDirObjectAccess",
-        #             "Effect": "Allow",
-        #             "Action": [
-        #                 "s3:GetObject",
-        #                 "s3:GetObjectVersion",
-        #                 "s3:GetObjectACL"
-        #             ],
-        #             "Resource": [
-        #                 f"{os.environ['S3_BUCKET_ARN']}/{input_username}/clearing/outbound/*",
-        #                 f"{os.environ['S3_BUCKET_ARN']}/{input_username}/*"
-        #             ]
-        #         },
-        #         {
-        #             "Sid": "HomeDirObjectAccess",
-        #             "Effect": "Allow",
-        #             "Action": [
-        #                 "s3:PutObject",
-        #                 "s3:GetObject",
-        #                 "s3:DeleteObjectVersion",
-        #                 "s3:DeleteObject",
-        #                 "s3:GetObjectVersion",
-        #                 "s3:GetObjectACL",
-        #                 "s3:PutObjectACL"
-        #             ],
-        #             "Resource": f"{os.environ['S3_BUCKET_ARN']}/{input_username}/clearing/inbound/*"
-        #         }
-        #     ]
-        # })
-        # resp_data['Policy'] = json.dumps({
-        #     "Version": "2012-10-17",
-        #     "Statement": [
-        #         {
-        #             "Sid": "AllowListingOfUserFolder",
-        #             "Effect": "Allow",
-        #             "Action": [
-        #                 "s3:ListBucket"
-        #             ],
-        #             "Resource": f"{os.environ['S3_BUCKET_ARN']}",
-        #             "Condition": {
-        #                 "StringLike": {
-        #                     "s3:prefix": [
-        #                         f"{input_username}/*",
-        #                         f"{input_username}"
-        #                     ]
-        #                 }
-        #             }
-        #         },
-        #         {
-        #             "Sid": "HomeDirObjectAccess",
-        #             "Effect": "Allow",
-        #             "Action": [
-        #                 "s3:GetObject",
-        #                 "s3:GetObjectVersion",
-        #                 "s3:GetObjectACL"
-        #             ],
-        #             "Resource": [
-        #                 f"{os.environ['S3_BUCKET_ARN']}/{input_username}/clearing/outbound/*",
-        #                 f"{os.environ['S3_BUCKET_ARN']}/{input_username}/"
-        #             ]
-        #         },
-        #         {
-        #             "Sid": "HomeDirObjectAccess",
-        #             "Effect": "Allow",
-        #             "Action": [
-        #               "s3:PutObject",
-        #               "s3:GetObject",
-        #               "s3:DeleteObjectVersion",
-        #               "s3:DeleteObject",
-        #               "s3:GetObjectVersion",
-        #               "s3:GetObjectACL",
-        #               "s3:PutObjectACL"
-        #             ],
-        #             "Resource": f"arn:aws:s3:::cdna-clearing-bucket-967075928472/{input_username}/clearing/inbound/*"
-        #         }
-        #     ]
-        # })
+    resp_data['Policy'] = json.dumps({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "AllowListingOfUserFolder",
+                "Effect": "Allow",
+                "Action": [
+                    "s3:ListBucket",
+                ],
+                "Resource": f"{os.environ['S3_BUCKET_ARN']}",
+                "Condition": {
+                    "StringLike": {
+                        "s3:prefix": [
+                            f"{input_username}/*",
+                            f"{input_username}"
+                        ]
+                    }
+                }
+            },
+            {
+                "Sid": "DenyFolderDeletion",
+                "Effect": "Deny",
+                "Action": [
+                    "s3:DeleteObject",
+                    "s3:DeleteObjectVersion",
+                ],
+                "Resource": f"{os.environ['S3_BUCKET_ARN']}/{input_username}/clearing"
+            },
+            {
+                "Sid": "DefaultHomeFolderObjectReadOnlyAccess",
+                "Effect": "Allow",
+                "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:GetObjectACL",
+                ],
+                "Resource": f"{os.environ['S3_BUCKET_ARN']}/{input_username}/*"
+            },
+            {
+                "Sid": "InboundFolderObjectReadWriteAccess",
+                "Effect": "Allow",
+                "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:DeleteObjectVersion",
+                    "s3:DeleteObject",
+                    "s3:GetObjectVersion",
+                    "s3:GetObjectACL",
+                    "s3:PutObjectACL",
+                ],
+                "Resource": f"{os.environ['S3_BUCKET_ARN']}/{input_username}/clearing/inbound/*"
+            },
+            {
+                "Sid": "KMSKeyAccess",
+                "Effect": "Allow",
+                "Action": [
+                    "kms:Encrypt",
+                    "kms:Decrypt",
+                    "kms:ReEncrypt*",
+                    "kms:GenerateDataKey*",
+                    "kms:DescribeKey"
+                ],
+                "Resource": f"{os.environ['KMS_KEY_ARN']}"
+            }
+        ]
+    })
 
     if 'HomeDirectoryDetails' in resp_dict:
         print("HomeDirectoryDetails found {} - Applying setting for virtual folders".format(resp_dict['HomeDirectoryDetails']))

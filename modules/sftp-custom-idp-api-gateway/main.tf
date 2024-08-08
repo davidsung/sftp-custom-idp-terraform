@@ -403,6 +403,7 @@ resource "aws_lambda_function" "get_user_config" {
       SFTP_ROLE_ARN          = aws_iam_role.sftp_role.arn
       SECRETS_MANAGER_REGION = data.aws_region.current.name
       S3_BUCKET_ARN          = aws_s3_bucket.sftp_storage.arn
+      KMS_KEY_ARN            = aws_kms_key.sftp_storage_key.arn
     }
   }
 }

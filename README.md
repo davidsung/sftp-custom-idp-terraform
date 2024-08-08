@@ -111,106 +111,68 @@ List and describe the input variables your project uses. For example:
 14. [WIP] Put file into /clearing/inbound, expecting `Succeeded`
 15. [WIP] Get file from /clearing/outbound, expecting `Succeeded`
 16. [WIP] Put file into /clearing/outbound, expecting `Failure`
+17. [WIP] Remove folder /clearing/inbound, expecting `Failure`
+18. [WIP] Remove folder /clearing/outbound, expecting `Failure`
 
 ## Notes
 
-### Further restrict SFTP IAM Role to access specific Secrets Manager secrets
-The `sftp-server-role` allow full Read/Write access to all secrets in Secrets Manager. Further restriction should be implemented to restrict this iam role to access only SFTP user secrets stored in Secrets Manager.
-
 ### Fine Grain Authorization on `subfolders`
-🚧This feature is still not yet implemented in this terraform template. Technically feasible according to AWS documentation🚧
-
 To further restrict an authenticated user on accessing the subfolder of user logical home folder, we need to incorporate a `Policy` field in the `Get User Config Lambda` in the json respond. The policy is essence a IAM policy statement like below   
 Session Policy Example:
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [
-      {
-          "Sid": "AllowListingOfUserFolder",
-          "Action": [
-              "s3:ListBucket"
-          ],
-          "Effect": "Allow",
-          "Resource": [
-              "arn:aws:s3:::${transfer:HomeBucket}"
-          ],
-          "Condition": {
-              "StringLike": {
-                  "s3:prefix": [
-                      "${transfer:HomeFolder}/*",
-                      "${transfer:HomeFolder}"
-                  ]
-              }
-          }
-      },
-      {
-          "Sid": "HomeDirObjectAccess",
-          "Effect": "Allow",
-          "Action": [
-              "s3:PutObject",
-              "s3:GetObject",
-              "s3:DeleteObjectVersion",
-              "s3:DeleteObject",
-              "s3:GetObjectVersion",
-              "s3:GetObjectACL",
-              "s3:PutObjectACL"
-          ],
-          "Resource": "arn:aws:s3:::${transfer:HomeDirectory}/*"
-       }
+    {
+      "Sid": "AllowListingOfUserFolder",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::[bucket_name]"
+      ],
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "[username]/*",
+            "[username]"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "HomeDirObjectAccess",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObjectVersion",
+        "s3:DeleteObject",
+        "s3:GetObjectVersion",
+        "s3:GetObjectACL",
+        "s3:PutObjectACL"
+      ],
+      "Resource": "arn:aws:s3:::[username]/*"
+    },
+    {
+      "Sid": "KMSKeyAccess",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ],
+      "Resource": "[kms_key_arn]"
+    }
   ]
 }
 ```
-Restricting user to delete files in outbound folder
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-      {
-          "Sid": "AllowListingOfUserFolder",
-          "Action": [
-              "s3:ListBucket"
-          ],
-          "Effect": "Allow",
-          "Resource": [
-              "arn:aws:s3:::${transfer:HomeBucket}"
-          ],
-          "Condition": {
-              "StringLike": {
-                  "s3:prefix": [
-                      "${transfer:HomeFolder}/*",
-                      "${transfer:HomeFolder}"
-                  ]
-              }
-          }
-      },
-      {
-          "Sid": "HomeDirObjectAccess",
-          "Effect": "Allow",
-          "Action": [
-              "s3:GetObject",
-              "s3:GetObjectVersion",
-              "s3:GetObjectACL"
-          ],
-          "Resource": "arn:aws:s3:::${transfer:HomeDirectory}/clearing/outbound/*"
-       },
-       {
-          "Sid": "HomeDirObjectAccess",
-          "Effect": "Allow",
-          "Action": [
-              "s3:PutObject",
-              "s3:GetObject",
-              "s3:DeleteObjectVersion",
-              "s3:DeleteObject",
-              "s3:GetObjectVersion",
-              "s3:GetObjectACL",
-              "s3:PutObjectACL"
-          ],
-          "Resource": "arn:aws:s3:::${transfer:HomeDirectory}/clearing/inbound/*"
-       }
-  ]
-}
-```
+
+### Further restrict SFTP IAM Role to access specific Secrets Manager secrets
+The `sftp-server-role` allow full Read/Write access to all secrets in Secrets Manager. Further restriction should be implemented to restrict this iam role to access only SFTP user secrets stored in Secrets Manager.
 
 ## References
 1. [AWS Blog - Use IP whitelisting to secure your AWS Transfer for SFTP servers](https://aws.amazon.com/blogs/storage/use-ip-whitelisting-to-secure-your-aws-transfer-for-sftp-servers/)
